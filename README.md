@@ -139,7 +139,6 @@ SMS/
 ├── academic/          # Academic-related functionality
 ├── student/           # Student management
 ├── teacher/           # Teacher management
-├── attendance/        # Attendance tracking
 ├── grading/          # Grade management
 ├── static/           # Static files (CSS, JS, images)
 ├── templates/        # HTML templates
