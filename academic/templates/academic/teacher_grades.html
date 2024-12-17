@@ -1,0 +1,434 @@
+{% extends 'student/base.html' %}
+
+{% block extra_css %}
+<!-- SweetAlert2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<style>
+    .grade-input {
+        width: 80px !important;
+        min-width: 80px;
+    }
+    
+    .remarks-input {
+        min-width: 150px;
+    }
+    
+    .class-select {
+        border: none;
+        border-left: 3px solid transparent;
+        border-radius: 0;
+        padding: 1rem;
+        transition: all 0.3s ease;
+        text-align: left;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+    
+    .class-select:hover {
+        background-color: var(--bs-primary-bg-subtle);
+        border-left-color: var(--bs-primary);
+    }
+    
+    .class-select.active {
+        background-color: var(--bs-primary-bg-subtle);
+        border-left-color: var(--bs-primary);
+        font-weight: 500;
+    }
+    
+    .class-select .subject-name {
+        font-weight: 500;
+        display: block;
+        color: var(--bs-body-color);
+        margin-bottom: 0.25rem;
+    }
+    
+    .class-select .class-info {
+        font-size: 0.875rem;
+        color: var(--bs-secondary-color);
+        display: block;
+    }
+
+    .table > :not(caption) > * > * {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+
+    .form-control:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+
+    .table-responsive {
+        margin: 0 -1rem;
+    }
+
+    @media (max-width: 768px) {
+        .grade-input {
+            width: 70px !important;
+            min-width: 70px;
+        }
+        
+        .remarks-input {
+            min-width: 120px;
+        }
+        
+        .table-responsive {
+            margin: 0 -1.5rem;
+        }
+        
+        .table > :not(caption) > * > * {
+            padding: 0.5rem;
+        }
+        
+        .assessment-label {
+            display: none;
+        }
+    }
+
+    /* Custom scrollbar for the class list */
+    .class-list-container {
+        max-height: calc(100vh - 300px);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--bs-primary) transparent;
+    }
+
+    .class-list-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .class-list-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .class-list-container::-webkit-scrollbar-thumb {
+        background-color: var(--bs-primary);
+        border-radius: 3px;
+    }
+
+    /* Sticky header for grades table */
+    .table-sticky-header {
+        height: calc(100vh - 350px);
+        overflow-y: auto;
+    }
+
+    .table-sticky-header thead th {
+        position: sticky;
+        top: 0;
+        background-color: var(--bs-light);
+        z-index: 1;
+    }
+
+    /* Loading skeleton animation */
+    @keyframes loading {
+        0% { background-position: -200px 0; }
+        100% { background-position: calc(200px + 100%) 0; }
+    }
+
+    .loading-skeleton {
+        animation: loading 1.5s infinite;
+        background: linear-gradient(90deg, 
+            var(--bs-light) 25%, 
+            var(--bs-gray-200) 50%, 
+            var(--bs-light) 75%
+        );
+        background-size: 200px 100%;
+        background-repeat: no-repeat;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h4 class="mb-1">Manage Grades</h4>
+                    <p class="text-muted mb-0">Record and update student grades for your classes</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <label for="assessment-type" class="me-2 text-muted assessment-label">Assessment:</label>
+                    <select id="assessment-type" class="form-select form-select-sm" style="width: auto;">
+                        <option value="quiz">Quiz</option>
+                        <option value="assignment">Assignment</option>
+                        <option value="mid_term">Mid Term</option>
+                        <option value="final">Final</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="material-icons me-2">class</i>
+                        <h6 class="card-title mb-0">Select Class</h6>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="class-list-container">
+                        <div class="list-group list-group-flush">
+                            {% for class in classes %}
+                                <button type="button" 
+                                        class="list-group-item list-group-item-action class-select" 
+                                        data-class-id="{{ class.id }}">
+                                    <span class="subject-name">{{ class.subject.name }}</span>
+                                    <span class="class-info">{{ class.class_group.name }} {{ class.class_group.section }}</span>
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8 col-lg-9">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="material-icons me-2">grade</i>
+                        <h6 class="card-title mb-0">Student Grades</h6>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="grades-list">
+                        <div class="text-center py-5">
+                            <i class="material-icons" style="font-size: 48px; color: var(--bs-gray-400);">school</i>
+                            <p class="text-muted mt-3">Please select a class to view students</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const classButtons = document.querySelectorAll('.class-select');
+    const gradesList = document.getElementById('grades-list');
+    const assessmentType = document.getElementById('assessment-type');
+
+    function loadGrades(classId, type) {
+        // Show loading skeleton
+        gradesList.innerHTML = `
+            <div class="table-responsive table-sticky-header">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Student</th>
+                            <th class="text-center">Score</th>
+                            <th class="text-center">Max Score</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Array(5).fill().map(() => `
+                            <tr>
+                                <td><div class="loading-skeleton" style="height: 20px; width: 80%"></div></td>
+                                <td><div class="loading-skeleton" style="height: 20px; width: 60px; margin: auto"></div></td>
+                                <td><div class="loading-skeleton" style="height: 20px; width: 60px; margin: auto"></div></td>
+                                <td><div class="loading-skeleton" style="height: 20px; width: 100%"></div></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        fetch(`/academic/api/grades/${classId}/${type}/`)
+            .then(response => response.json())
+            .then(data => {
+                let html = `
+                    <form id="grades-form" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="table-responsive table-sticky-header">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40%">Student</th>
+                                        <th class="text-center">Score</th>
+                                        <th class="text-center">Max Score</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+
+                data.students.forEach(student => {
+                    const percentage = student.score && student.max_score ? 
+                        (student.score / student.max_score * 100).toFixed(1) : null;
+                    
+                    html += `
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="material-icons me-2 text-muted">person</i>
+                                    ${student.name}
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-control form-control-sm grade-input mx-auto" 
+                                       name="score_${student.id}" value="${student.score || ''}" 
+                                       step="0.01" min="0" required>
+                                <div class="invalid-feedback">Required</div>
+                                ${percentage ? `<small class="text-muted">${percentage}%</small>` : ''}
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-control form-control-sm grade-input mx-auto" 
+                                       name="max_score_${student.id}" value="${student.max_score || ''}" 
+                                       step="0.01" min="0" required>
+                                <div class="invalid-feedback">Required</div>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm remarks-input" 
+                                       name="remarks_${student.id}" value="${student.remarks || ''}" 
+                                       placeholder="Optional remarks">
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="material-icons me-2">save</i>Save Grades
+                            </button>
+                        </div>
+                    </form>
+                `;
+
+                gradesList.innerHTML = html;
+
+                // Add form submit handler with validation
+                document.getElementById('grades-form').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const requiredFields = this.querySelectorAll('[required]');
+                    let hasEmptyFields = false;
+                    
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            field.classList.add('is-invalid');
+                            hasEmptyFields = true;
+                        } else {
+                            field.classList.remove('is-invalid');
+                        }
+                    });
+
+                    if (hasEmptyFields) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Incomplete Grades',
+                            text: 'Please fill in all required score fields',
+                            confirmButtonColor: 'var(--bs-primary)'
+                        });
+                        return;
+                    }
+
+                    Swal.fire({
+                        title: 'Save Grades',
+                        text: 'Are you sure you want to save these grades?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: 'var(--bs-primary)',
+                        cancelButtonColor: 'var(--bs-danger)',
+                        confirmButtonText: '<i class="material-icons me-2">save</i>Save',
+                        cancelButtonText: '<i class="material-icons me-2">close</i>Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            saveGrades(classId, type, this);
+                        }
+                    });
+                });
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error Loading Grades',
+                    text: 'Unable to load grades data. Please try again.',
+                    confirmButtonColor: 'var(--bs-primary)'
+                });
+            });
+    }
+
+    function saveGrades(classId, type, form) {
+        const formData = new FormData(form);
+        
+        Swal.fire({
+            title: 'Saving Grades',
+            html: '<div class="d-flex align-items-center"><i class="material-icons me-2">sync</i>Saving student grades...</div>',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        fetch(`/academic/api/grades/${classId}/${type}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Object.fromEntries(formData)),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Grades Saved',
+                    text: 'Student grades have been saved successfully',
+                    confirmButtonColor: 'var(--bs-primary)'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error Saving Grades',
+                    text: data.error || 'Unable to save grades. Please try again.',
+                    confirmButtonColor: 'var(--bs-primary)'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error Saving Grades',
+                text: 'Unable to save grades. Please try again.',
+                confirmButtonColor: 'var(--bs-primary)'
+            });
+        });
+    }
+
+    classButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const classId = this.dataset.classId;
+            const type = assessmentType.value;
+            loadGrades(classId, type);
+            
+            classButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    assessmentType.addEventListener('change', function() {
+        const activeClass = document.querySelector('.class-select.active');
+        if (activeClass) {
+            loadGrades(activeClass.dataset.classId, this.value);
+        }
+    });
+});
+</script>
+{% endblock %}

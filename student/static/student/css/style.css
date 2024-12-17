@@ -1,0 +1,116 @@
+/* Custom styles for SMS */
+
+/* Dashboard cards */
+.stat-card {
+    transition: transform 0.2s;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Student list table */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.student-actions .btn {
+    margin: 0 2px;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Form styling */
+.form-section {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.form-section h4 {
+    color: #0d6efd;
+    border-bottom: 2px solid #0d6efd;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* Student detail page */
+.detail-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.detail-card .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #0d6efd;
+}
+
+.detail-card .card-title {
+    color: #0d6efd;
+    margin: 0;
+}
+
+/* Navigation */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Search and filter section */
+.filter-section {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+/* Badges */
+.badge {
+    padding: 0.5em 1em;
+}
+
+/* Progress bars */
+.progress {
+    height: 20px;
+    border-radius: 10px;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Custom buttons */
+.btn-action {
+    border-radius: 20px;
+    padding: 0.375rem 1rem;
+}
+
+/* Status indicators */
+.status-active {
+    color: #198754;
+}
+
+.status-inactive {
+    color: #dc3545;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stat-card {
+        margin-bottom: 15px;
+    }
+    
+    .table-responsive {
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}

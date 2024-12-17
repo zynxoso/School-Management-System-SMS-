@@ -1,0 +1,200 @@
+{% extends 'academic/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Overview Cards -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Class
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ enrollment.class_group.name }} - {{ enrollment.class_group.section }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Attendance
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ attendance_percentage|floatformat:1 }}%
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Average Grade
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ average_grade|floatformat:1 }}%
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Subjects
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ subjects.count }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Attendance -->
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Attendance</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attendance in recent_attendance %}
+                                <tr>
+                                    <td>{{ attendance.date }}</td>
+                                    <td>{{ attendance.class_subject.subject.name }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if attendance.status == 'present' %}success{% elif attendance.status == 'absent' %}danger{% else %}warning{% endif %}">
+                                            {{ attendance.status|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No recent attendance records.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Grades -->
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Grades</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Subject</th>
+                                    <th>Assessment</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grade in recent_grades %}
+                                <tr>
+                                    <td>{{ grade.date }}</td>
+                                    <td>{{ grade.class_subject.subject.name }}</td>
+                                    <td>{{ grade.assessment_type|title }}</td>
+                                    <td>{{ grade.score }}/{{ grade.max_score }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No recent grades.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subjects -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">My Subjects</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for subject in subjects %}
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            {{ subject.subject.name }}
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Teacher:</strong> {{ subject.teacher.get_full_name }}</p>
+                            <p><strong>Code:</strong> {{ subject.subject.code }}</p>
+                            <p><strong>Credits:</strong> {{ subject.subject.credits }}</p>
+                            <div class="d-grid">
+                                <a href="#" class="btn btn-outline-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No subjects assigned yet.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

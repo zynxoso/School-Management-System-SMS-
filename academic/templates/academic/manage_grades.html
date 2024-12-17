@@ -1,0 +1,89 @@
+{% extends 'academic/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'academic:class_list' %}">Classes</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'academic:class_detail' class_subject.class_group.id %}">
+                {{ class_subject.class_group.name }} - {{ class_subject.class_group.section }}
+            </a></li>
+            <li class="breadcrumb-item active">Manage Grades</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">
+                Record Grades - {{ class_subject.subject.name }}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label for="assessment_type" class="form-label">Assessment Type</label>
+                        <select class="form-select" id="assessment_type" name="assessment_type" required>
+                            <option value="quiz">Quiz</option>
+                            <option value="assignment">Assignment</option>
+                            <option value="mid_term">Mid Term</option>
+                            <option value="final">Final</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="grade_date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="grade_date" name="date" required>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Score</th>
+                                <th>Max Score</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in students %}
+                            <tr>
+                                <td>{{ enrollment.student.get_full_name }}</td>
+                                <td>
+                                    <input type="number" name="score_{{ enrollment.id }}" class="form-control"
+                                           step="0.01" min="0" required>
+                                </td>
+                                <td>
+                                    <input type="number" name="max_score_{{ enrollment.id }}" class="form-control"
+                                           step="0.01" min="0" value="100" required>
+                                </td>
+                                <td>
+                                    <input type="text" name="remarks_{{ enrollment.id }}" class="form-control"
+                                           placeholder="Optional remarks">
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">No students enrolled in this class.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Grades
+                    </button>
+                    <a href="{% url 'academic:class_detail' class_subject.class_group.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Class
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

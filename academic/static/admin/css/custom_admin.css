@@ -1,0 +1,43 @@
+.button {
+    display: inline-block;
+    padding: 6px 12px;
+    margin: 0 4px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.button i {
+    margin-right: 5px;
+}
+
+/* Edit button */
+.button:has(.fa-edit) {
+    color: #fff;
+    background-color: #007bff;
+    border-color: #0056b3;
+}
+
+.button:has(.fa-edit):hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+/* Delete button */
+.button:has(.fa-trash) {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #bd2130;
+}
+
+.button:has(.fa-trash):hover {
+    background-color: #bd2130;
+    border-color: #921925;
+}

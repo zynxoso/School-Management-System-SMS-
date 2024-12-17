@@ -1,0 +1,70 @@
+{% extends 'student/base.html' %}
+
+{% block sidebar %}
+<div class="sidebar-sticky">
+    <ul class="nav flex-column">
+        {% if user.is_authenticated %}
+            {% if user.user_type == 'admin' or user.user_type == 'teacher' %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'class_list' %}active{% endif %}"
+                       href="{% url 'academic:class_list' %}">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        Classes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_attendance' %}active{% endif %}"
+                       href="#">
+                        <i class="fas fa-clipboard-list"></i>
+                        Attendance
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_grades' %}active{% endif %}"
+                       href="#">
+                        <i class="fas fa-graduation-cap"></i>
+                        Grades
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% if user.user_type == 'student' %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}"
+                       href="{% url 'academic:student_dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-book"></i>
+                        My Courses
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-chart-line"></i>
+                        My Progress
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% if user.user_type == 'parent' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-child"></i>
+                        My Children
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-chart-bar"></i>
+                        Progress Reports
+                    </a>
+                </li>
+            {% endif %}
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}

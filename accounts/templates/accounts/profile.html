@@ -1,0 +1,229 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Profile Summary Card -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header p-3">
+                    <h5 class="mb-0">Profile Summary</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" 
+                             class="rounded-circle img-fluid" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'img/default-profile.png' %}" alt="Default Profile" 
+                             class="rounded-circle img-fluid" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% endif %}
+                    <h5 class="my-3">{{ user.get_full_name }}</h5>
+                    <p class="text-muted mb-1">{{ user.get_user_type_display }}</p>
+                    <p class="text-muted mb-4">{{ user.email }}</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header p-3">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'password_change' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-key"></i> Change Password
+                        </a>
+                        {% if user.user_type == 'teacher' %}
+                        <a href="{% url 'academic:teacher_classes' %}" class="btn btn-outline-info">
+                            <i class="fas fa-chalkboard-teacher"></i> View My Classes
+                        </a>
+                        {% elif user.user_type == 'student' %}
+                        <a href="{% url 'academic:student_classes' %}" class="btn btn-outline-info">
+                            <i class="fas fa-book"></i> View My Courses
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Details -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header p-3">
+                    <h5 class="mb-0">Edit Profile</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> Please correct the errors below.
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.first_name.errors|join:", " }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.last_name.errors|join:", " }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.email.errors|join:", " }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.phone_number.errors|join:", " }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.address.errors|join:", " }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                                {{ form.date_of_birth }}
+                                {% if form.date_of_birth.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.date_of_birth.errors|join:", " }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
+                                {{ form.profile_picture }}
+                                {% if form.profile_picture.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.profile_picture.errors|join:", " }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if user.user_type == 'teacher' %}
+            <!-- Teacher Specific Information -->
+            <div class="card mb-4">
+                <div class="card-header p-3">
+                    <h5 class="mb-0">Teaching Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <p class="mb-0">Employee ID</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">{{ user.teacherprofile.employee_id }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <p class="mb-0">Department</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">{{ user.teacherprofile.department }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <p class="mb-0">Qualification</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">{{ user.teacherprofile.qualification }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if user.user_type == 'parent' %}
+            <!-- Parent Specific Information -->
+            <div class="card mb-4">
+                <div class="card-header p-3">
+                    <h5 class="mb-0">Parent Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <p class="mb-0">Occupation</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">{{ user.parentprofile.occupation }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <p class="mb-0">Relationship</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">{{ user.parentprofile.relationship }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add Bootstrap classes to form fields
+    document.addEventListener('DOMContentLoaded', function() {
+        const formFields = document.querySelectorAll('input, select, textarea');
+        formFields.forEach(field => {
+            field.classList.add('form-control');
+        });
+    });
+</script>
+{% endblock %}

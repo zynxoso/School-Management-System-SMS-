@@ -1,0 +1,79 @@
+{% extends 'academic/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'academic:class_list' %}">Classes</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'academic:class_detail' class_subject.class_group.id %}">
+                {{ class_subject.class_group.name }} - {{ class_subject.class_group.section }}
+            </a></li>
+            <li class="breadcrumb-item active">Manage Attendance</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">
+                Record Attendance - {{ class_subject.subject.name }}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label for="attendance_date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="attendance_date" name="date" required>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Status</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in students %}
+                            <tr>
+                                <td>{{ enrollment.student.get_full_name }}</td>
+                                <td>
+                                    <select name="status_{{ enrollment.id }}" class="form-select">
+                                        <option value="present">Present</option>
+                                        <option value="absent">Absent</option>
+                                        <option value="late">Late</option>
+                                        <option value="excused">Excused</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="remarks_{{ enrollment.id }}" class="form-control"
+                                           placeholder="Optional remarks">
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">No students enrolled in this class.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Attendance
+                    </button>
+                    <a href="{% url 'academic:class_detail' class_subject.class_group.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Class
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

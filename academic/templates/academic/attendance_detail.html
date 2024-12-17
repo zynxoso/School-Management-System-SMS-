@@ -1,0 +1,157 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block title %}Attendance Detail - {{ class_subject.subject.name }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    {% csrf_token %}
+    <!-- Header Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1">{{ class_subject.subject.name }}</h4>
+                    <p class="text-muted mb-0">
+                        Class: {{ class_subject.class_group.name }} - {{ class_subject.class_group.section }} |
+                        Date: {{ date|date:"F d, Y" }}
+                    </p>
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'academic:teacher_attendance' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Table -->
+    <form method="POST" action="{% url 'academic:teacher_attendance_detail' class_subject.id date|date:"Y-m-d" %}">
+        {% csrf_token %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-light py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Student Attendance</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="markAllPresent()">
+                            <i class="fas fa-check"></i> Mark All Present
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="markAllAbsent()">
+                            <i class="fas fa-times"></i> Mark All Absent
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in enrollments %}
+                            <tr>
+                                <td>{{ enrollment.student.student_id }}</td>
+                                <td>{{ enrollment.student.get_full_name }}</td>
+                                <td>
+                                    <select name="attendance_status_{{ enrollment.student.id }}" class="form-select form-select-sm attendance-status" 
+                                            data-student-id="{{ enrollment.student.id }}">
+                                        <option value="present" {% if enrollment.attendance.status == 'present' or not enrollment.attendance %}selected{% endif %}>Present</option>
+                                        <option value="absent" {% if enrollment.attendance.status == 'absent' %}selected{% endif %}>Absent</option>
+                                        <option value="late" {% if enrollment.attendance.status == 'late' %}selected{% endif %}>Late</option>
+                                        <option value="excused" {% if enrollment.attendance.status == 'excused' %}selected{% endif %}>Excused</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="attendance_remarks_{{ enrollment.student.id }}" class="form-control form-control-sm attendance-remarks" 
+                                           value="{{ enrollment.attendance.remarks|default:'' }}"
+                                           placeholder="Add remarks...">
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="fas fa-school text-muted mb-2" style="font-size: 48px;"></i>
+                                        <h6 class="text-muted mb-1">No Students Enrolled</h6>
+                                        <p class="text-muted small mb-0">There are no students enrolled in this class.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">
+            <i class="fas fa-user-check"></i> Save Attendance
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+function markAllPresent() {
+    document.querySelectorAll('.attendance-status').forEach(select => {
+        const originalValue = select.dataset.originalValue;
+        select.value = 'present';
+        // Only mark as changed if the original value was different
+        if (originalValue !== 'present') {
+            hasUnsavedChanges = true;
+        }
+    });
+}
+
+function markAllAbsent() {
+    document.querySelectorAll('.attendance-status').forEach(select => {
+        if (select.value !== 'absent') {
+            select.value = 'absent';
+            select.dispatchEvent(new Event('change'));
+            hasUnsavedChanges = true;
+        }
+    });
+}
+
+// Track changes
+let hasUnsavedChanges = false;
+
+document.querySelectorAll('.attendance-status, .attendance-remarks').forEach(element => {
+    const originalValue = element.value;
+    element.addEventListener('change', () => {
+        const currentValue = element.value;
+        if (currentValue !== originalValue) {
+            hasUnsavedChanges = true;
+        }
+    });
+});
+
+// Warn about unsaved changes
+window.addEventListener('beforeunload', (e) => {
+    if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+</script>
+{% endblock %}

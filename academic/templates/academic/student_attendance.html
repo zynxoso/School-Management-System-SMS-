@@ -1,0 +1,372 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block title %}My Attendance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">My Attendance</h4>
+                    <form method="get" class="d-flex gap-2">
+                        <select class="form-select form-select-sm" id="monthFilter" name="month" onchange="this.form.submit()" style="width: auto;">
+                            <option value="">All Months</option>
+                        
+                                <option value="{{ month_num }}" {% if selected_month == month_num %}selected{% endif %}>
+                                    {% with month_num|add:"0"|date:"F" as month_name %}
+                                        {{ month_name }}
+                                    {% endwith %}
+                                </option>
+               
+                        </select>
+                        <div id="monthFilterSpinner" class="spinner-border spinner-border-sm text-primary d-none" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-body">
+                    {% if attendance %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Subject</th>
+                                        <th>Status</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for record in attendance %}
+                                    <tr>
+                                        <td>{{ record.date|date:"d M Y" }}</td>
+                                        <td>{{ record.class_subject.subject.name }}</td>
+                                        <td>
+                                            <span class="badge {% if record.status == 'present' %}bg-success{% elif record.status == 'absent' %}bg-danger{% elif record.status == 'late' %}bg-warning{% else %}bg-info{% endif %}">
+                                                {{ record.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ record.remarks|default:"-" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Attendance Summary Cards -->
+                        <div class="row mt-4">
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Present</h5>
+                                        <h2 class="mb-0">{{ present_count }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Absent</h5>
+                                        <h2 class="mb-0">{{ absent_count }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Late</h5>
+                                        <h2 class="mb-0">{{ late_count }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Attendance Rate</h5>
+                                        <h2 class="mb-0">{{ attendance_rate }}%</h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Attendance Chart -->
+                        <div class="row mt-4">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Monthly Attendance Overview</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="attendanceChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Subject-wise Attendance</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="subjectAttendanceChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No attendance records found.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    class AttendanceCharts {
+        constructor() {
+            this.charts = new Map();
+            this.initialize();
+        }
+
+        initialize() {
+            this.initializeTooltips();
+            this.initializeFilters();
+            const hasAttendance = {% if attendance %}true{% else %}false{% endif %};
+            if (hasAttendance) {
+                this.initializeCharts();
+            }
+        }
+
+        initializeTooltips() {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                new bootstrap.Tooltip(el);
+            });
+        }
+
+        initializeFilters() {
+            const monthFilter = document.getElementById('monthFilter');
+            const spinner = document.getElementById('monthFilterSpinner');
+            
+            if (monthFilter && spinner) {
+                monthFilter.addEventListener('change', () => {
+                    spinner.classList.remove('d-none');
+                    monthFilter.form.submit();
+                });
+            }
+        }
+
+        validateData(data, length = 12) {
+            if (!Array.isArray(data) || data.length !== length) {
+                return Array(length).fill(0);
+            }
+            return data.map(val => Number(val) || 0);
+        }
+
+        generateColors(count) {
+            const baseColors = [
+                { bg: 'rgb(40, 167, 69)', light: 'rgba(40, 167, 69, 0.1)' },   // Green
+                { bg: 'rgb(220, 53, 69)', light: 'rgba(220, 53, 69, 0.1)' },   // Red
+                { bg: 'rgb(255, 193, 7)', light: 'rgba(255, 193, 7, 0.1)' },   // Yellow
+                { bg: 'rgb(23, 162, 184)', light: 'rgba(23, 162, 184, 0.1)' }, // Cyan
+                { bg: 'rgb(111, 66, 193)', light: 'rgba(111, 66, 193, 0.1)' }, // Purple
+                { bg: 'rgb(108, 117, 125)', light: 'rgba(108, 117, 125, 0.1)'}, // Gray
+                { bg: 'rgb(0, 123, 255)', light: 'rgba(0, 123, 255, 0.1)' },   // Blue
+                { bg: 'rgb(253, 126, 20)', light: 'rgba(253, 126, 20, 0.1)' }  // Orange
+            ];
+            
+            return Array.from({ length: count }, (_, i) => baseColors[i % baseColors.length]);
+        }
+
+        createDataset(label, data, color) {
+            return {
+                label,
+                data,
+                borderColor: color.bg,
+                backgroundColor: color.light,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.1,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            };
+        }
+
+        getChartConfigs() {
+            // Validate data
+            const monthlyData = {
+                present: this.validateData({{ monthly_present|default:"[]"|safe }}),
+                absent: this.validateData({{ monthly_absent|default:"[]"|safe }}),
+                late: this.validateData({{ monthly_late|default:"[]"|safe }}),
+                excused: this.validateData({{ monthly_excused|default:"[]"|safe }})
+            };
+
+            const colors = this.generateColors(8);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            return {
+                monthlyAttendance: {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            this.createDataset('Present', monthlyData.present, colors[0]),
+                            this.createDataset('Absent', monthlyData.absent, colors[1]),
+                            this.createDataset('Late', monthlyData.late, colors[2]),
+                            this.createDataset('Excused', monthlyData.excused, colors[3])
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { 
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                padding: 10,
+                                callbacks: {
+                                    label: (context) => `${context.dataset.label}: ${context.parsed.y}`
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { 
+                                    stepSize: 1,
+                                    precision: 0
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                },
+                subjectAttendance: {
+                    type: 'doughnut',
+                    data: {
+                        labels: {{ subject_labels|default:"[]"|safe }},
+                        datasets: [{
+                            data: this.validateData(
+                                {{ subject_rates|default:"[]"|safe }}, 
+                                {{ subject_labels|default:"[]"|safe }}.length
+                            ),
+                            backgroundColor: this.generateColors(
+                                {{ subject_labels|default:"[]"|safe }}.length
+                            ).map(c => c.bg)
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { 
+                                position: 'bottom',
+                                display: {{ subject_labels|default:"[]"|safe }}.length > 0,
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            },
+                            tooltip: {
+                                padding: 10,
+                                callbacks: {
+                                    label: (context) => `${context.label}: ${context.parsed}%`
+                                }
+                            }
+                        },
+                        cutout: '60%'
+                    }
+                }
+            };
+        }
+
+        createChart(elementId, config) {
+            const element = document.getElementById(elementId);
+            if (!element) return null;
+
+            const ctx = element.getContext('2d');
+            if (!ctx) return null;
+
+            return new Chart(ctx, config);
+        }
+
+        showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element && element.parentElement) {
+                element.parentElement.innerHTML = `
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <div>${message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        initializeCharts() {
+            try {
+                const configs = this.getChartConfigs();
+                
+                // Initialize Monthly Attendance Chart
+                const monthlyChart = this.createChart('attendanceChart', configs.monthlyAttendance);
+                if (monthlyChart) {
+                    this.charts.set('monthly', monthlyChart);
+                }
+
+                // Initialize Subject Attendance Chart
+                const subjectLabels = {{ subject_labels|default:"[]"|safe }};
+                const subjectChart = document.getElementById('subjectAttendanceChart');
+                
+                if (subjectChart) {
+                    if (subjectLabels.length === 0) {
+                        subjectChart.parentElement.innerHTML = `
+                            <div class="alert alert-info d-flex align-items-center" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <div>No subject attendance data available</div>
+                            </div>
+                        `;
+                    } else {
+                        const chart = this.createChart('subjectAttendanceChart', configs.subjectAttendance);
+                        if (chart) {
+                            this.charts.set('subject', chart);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+                const errorMessage = 'Error loading attendance charts. Please refresh the page.';
+                this.showError('attendanceChart', errorMessage);
+                this.showError('subjectAttendanceChart', errorMessage);
+            }
+        }
+
+        destroy() {
+            this.charts.forEach(chart => chart.destroy());
+            this.charts.clear();
+        }
+    }
+
+    // Initialize on DOM load
+    document.addEventListener('DOMContentLoaded', () => {
+        window.attendanceCharts = new AttendanceCharts();
+    });
+</script>
+{% endblock %}

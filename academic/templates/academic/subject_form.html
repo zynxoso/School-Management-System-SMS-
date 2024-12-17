@@ -1,0 +1,109 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}<i class="fas fa-edit me-2"></i>Edit Subject{% else %}<i class="fas fa-plus me-2"></i>Add Subject{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0 d-flex align-items-center">
+                        <i class="fas {% if object %}fa-edit{% else %}fa-plus{% endif %} me-2"></i>
+                        {% if object %}Edit Subject{% else %}Add Subject{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {% if field.name == 'name' %}
+                                    <i class="fas fa-book me-2"></i>
+                                {% elif field.name == 'code' %}
+                                    <i class="fas fa-hashtag me-2"></i>
+                                {% elif field.name == 'credits' %}
+                                    <i class="fas fa-star me-2"></i>
+                                {% endif %}
+                                {{ field.label }}
+                            </label>
+                            {% if field.field.widget.input_type == 'text' or field.field.widget.input_type == 'number' %}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        {% if field.name == 'name' %}
+                                            <i class="fas fa-book"></i>
+                                        {% elif field.name == 'code' %}
+                                            <i class="fas fa-hashtag"></i>
+                                        {% elif field.name == 'credits' %}
+                                            <i class="fas fa-star"></i>
+                                        {% endif %}
+                                    </span>
+                                    <input type="{{ field.field.widget.input_type }}" 
+                                           class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                           id="{{ field.id_for_label }}"
+                                           name="{{ field.html_name }}"
+                                           value="{{ field.value|default:'' }}"
+                                           {% if field.field.required %}required{% endif %}
+                                           {% if field.field.widget.input_type == 'number' %}min="0"{% endif %}>
+                                </div>
+                            {% elif field.field.widget.input_type == 'textarea' %}
+                                <textarea class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                          id="{{ field.id_for_label }}"
+                                          name="{{ field.html_name }}"
+                                          rows="3"
+                                          {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+                            {% endif %}
+                            {% if field.help_text %}
+                                <div class="form-text"><i class="fas fa-info-circle me-1"></i>{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="invalid-feedback">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {% for error in field.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'academic:subject_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to List
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas {% if object %}fa-save{% else %}fa-plus-circle{% endif %} me-2"></i>
+                                {% if object %}Update{% else %}Create{% endif %} Subject
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
+{% endblock %}
