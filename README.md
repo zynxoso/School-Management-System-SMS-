@@ -178,4 +178,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-For support, email janharrymadrona@gmail.com or create an issue in the repository.
+For support, email janharrymadrona1000@gmail.com or create an issue in the repository.
