@@ -1,3 +1,9 @@
+DJANGO PROJECT:
+
+JAN HARRY I MADRONA
+RAYSON JAMES IMBAG
+ZAEREL ALFRED CASTILLO
+
 # School Management System (SMS)
 
 A comprehensive web-based school management system built with Django, designed to streamline educational institution management.
