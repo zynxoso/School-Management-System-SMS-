@@ -15,7 +15,6 @@ A comprehensive web-based school management system built with Django, designed t
   - Admin
   - Teachers
   - Students
-  - Parents
 - **Secure Login System**
   - Password reset functionality
   - Remember me option
@@ -36,7 +35,6 @@ A comprehensive web-based school management system built with Django, designed t
 - **Student Profiles**
   - Personal information
   - Academic records
-  - Attendance tracking
   - Grade management
 - **Enrollment Management**
   - Class assignments
@@ -52,16 +50,6 @@ A comprehensive web-based school management system built with Django, designed t
   - Schedule management
   - Subject assignments
   - Class responsibilities
-
-### Attendance System
-- **Daily Attendance**
-  - Mark student attendance
-  - Generate attendance reports
-  - Track attendance patterns
-- **Leave Management**
-  - Student leave requests
-  - Teacher leave management
-  - Absence tracking
 
 ### Grading System
 - **Grade Management**
@@ -80,7 +68,6 @@ A comprehensive web-based school management system built with Django, designed t
   - Recent activities
 - **Reports Generation**
   - Academic reports
-  - Attendance reports
   - Performance analytics
 
 ## 🚀 Technology Stack
