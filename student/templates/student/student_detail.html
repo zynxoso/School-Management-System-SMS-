@@ -1,0 +1,155 @@
+{% extends 'student/base.html' %}
+
+{% block title %}{{ student.get_full_name }} - SMS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2>Student Details</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{% url 'student:student_update' student.id %}" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'student:student_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Student ID:</strong> {{ student.student_id }}</p>
+                        <p><strong>Full Name:</strong> {{ student.get_full_name }}</p>
+                        <p><strong>Date of Birth:</strong> {{ student.date_of_birth }}</p>
+                        <p><strong>Gender:</strong> {{ student.get_gender_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Email:</strong> {{ student.email }}</p>
+                        <p><strong>Phone:</strong> {{ student.phone_number }}</p>
+                        <p><strong>Blood Group:</strong> {{ student.blood_group }}</p>
+                        <p><strong>Religion:</strong> {{ student.religion }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Academic Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Grade Level:</strong> {{ student.grade_level }}</p>
+                        <p><strong>Section:</strong> {{ student.section }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Admission Date:</strong> {{ student.admission_date }}</p>
+                        <p><strong>Academic Year:</strong> {{ student.academic_year }}</p>
+                    </div>
+                </div>
+                {% if student.previous_school %}
+                <p><strong>Previous School:</strong> {{ student.previous_school }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Contact Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Address:</strong> {{ student.address }}</p>
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>City:</strong> {{ student.city }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>State:</strong> {{ student.state }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Postal Code:</strong> {{ student.postal_code }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Emergency Contact</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ student.emergency_contact_name }}</p>
+                <p><strong>Relationship:</strong> {{ student.emergency_contact_relationship }}</p>
+                <p><strong>Phone:</strong> {{ student.emergency_contact_phone }}</p>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Parent Information</h5>
+            </div>
+            <div class="card-body">
+                {% if student.father_name %}
+                <div class="mb-3">
+                    <h6>Father's Details</h6>
+                    <p><strong>Name:</strong> {{ student.father_name }}</p>
+                    <p><strong>Occupation:</strong> {{ student.father_occupation }}</p>
+                    <p><strong>Phone:</strong> {{ student.father_phone }}</p>
+                    <p><strong>Email:</strong> {{ student.father_email }}</p>
+                </div>
+                {% endif %}
+
+                {% if student.mother_name %}
+                <div class="mb-3">
+                    <h6>Mother's Details</h6>
+                    <p><strong>Name:</strong> {{ student.mother_name }}</p>
+                    <p><strong>Occupation:</strong> {{ student.mother_occupation }}</p>
+                    <p><strong>Phone:</strong> {{ student.mother_phone }}</p>
+                    <p><strong>Email:</strong> {{ student.mother_email }}</p>
+                </div>
+                {% endif %}
+
+                {% if student.guardian_name %}
+                <div>
+                    <h6>Guardian's Details</h6>
+                    <p><strong>Name:</strong> {{ student.guardian_name }}</p>
+                    <p><strong>Relationship:</strong> {{ student.guardian_relationship }}</p>
+                    <p><strong>Phone:</strong> {{ student.guardian_phone }}</p>
+                    <p><strong>Email:</strong> {{ student.guardian_email }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if student.medical_conditions or student.allergies or student.medications %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Medical Information</h5>
+            </div>
+            <div class="card-body">
+                {% if student.medical_conditions %}
+                <p><strong>Medical Conditions:</strong> {{ student.medical_conditions }}</p>
+                {% endif %}
+                {% if student.allergies %}
+                <p><strong>Allergies:</strong> {{ student.allergies }}</p>
+                {% endif %}
+                {% if student.medications %}
+                <p><strong>Medications:</strong> {{ student.medications }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

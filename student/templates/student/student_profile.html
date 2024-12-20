@@ -1,0 +1,202 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Student Basic Info Card -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header p-3">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="mb-0">Student Profile</h5>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{% url 'student_update' student.pk %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h6 class="display-6">{{ student.get_full_name }}</h6>
+                        <p class="text-muted mb-1">Student ID: {{ student.student_id }}</p>
+                        <p class="text-muted mb-1">Grade {{ student.grade_level }} - Section {{ student.section }}</p>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <p class="mb-0 text-muted">Status</p>
+                        </div>
+                        <div class="col-sm-8">
+                            <p class="mb-0">
+                                {% if student.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <p class="mb-0 text-muted">Email</p>
+                        </div>
+                        <div class="col-sm-8">
+                            <p class="mb-0">{{ student.email }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <p class="mb-0 text-muted">Phone</p>
+                        </div>
+                        <div class="col-sm-8">
+                            <p class="mb-0">{{ student.phone_number }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic and Personal Info -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header p-3">
+                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#academic" role="tab">Academic Info</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#personal" role="tab">Personal Info</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#medical" role="tab">Medical Info</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#guardian" role="tab">Guardian Info</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- Academic Information -->
+                        <div class="tab-pane fade show active" id="academic" role="tabpanel">
+                            <h6 class="text-primary mb-3">Academic Information</h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Grade Level:</strong> {{ student.grade_level }}</p>
+                                    <p class="mb-1"><strong>Section:</strong> {{ student.section }}</p>
+                                    <p class="mb-1"><strong>Academic Year:</strong> {{ student.academic_year }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Admission Date:</strong> {{ student.admission_date }}</p>
+                                    <p class="mb-1"><strong>Previous School:</strong> {{ student.previous_school }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Personal Information -->
+                        <div class="tab-pane fade" id="personal" role="tabpanel">
+                            <h6 class="text-primary mb-3">Personal Information</h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Date of Birth:</strong> {{ student.date_of_birth }}</p>
+                                    <p class="mb-1"><strong>Gender:</strong> {{ student.get_gender_display }}</p>
+                                    <p class="mb-1"><strong>Blood Group:</strong> {{ student.blood_group }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Religion:</strong> {{ student.religion }}</p>
+                                    <p class="mb-1"><strong>Nationality:</strong> {{ student.nationality }}</p>
+                                </div>
+                            </div>
+                            <h6 class="text-primary mb-3">Contact Information</h6>
+                            <p class="mb-1"><strong>Address:</strong> {{ student.address }}</p>
+                            <p class="mb-1"><strong>City:</strong> {{ student.city }}</p>
+                            <p class="mb-1"><strong>State:</strong> {{ student.state }}</p>
+                            <p class="mb-1"><strong>Postal Code:</strong> {{ student.postal_code }}</p>
+                        </div>
+
+                        <!-- Medical Information -->
+                        <div class="tab-pane fade" id="medical" role="tabpanel">
+                            <h6 class="text-primary mb-3">Medical Information</h6>
+                            <div class="mb-3">
+                                <h6 class="text-muted">Medical Conditions</h6>
+                                <p>{{ student.medical_conditions|default:"No medical conditions recorded" }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <h6 class="text-muted">Allergies</h6>
+                                <p>{{ student.allergies|default:"No allergies recorded" }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <h6 class="text-muted">Medications</h6>
+                                <p>{{ student.medications|default:"No medications recorded" }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Guardian Information -->
+                        <div class="tab-pane fade" id="guardian" role="tabpanel">
+                            <h6 class="text-primary mb-3">Parent/Guardian Information</h6>
+                            <!-- Father's Information -->
+                            <div class="mb-4">
+                                <h6 class="text-muted">Father's Information</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Name:</strong> {{ student.father_name }}</p>
+                                        <p class="mb-1"><strong>Occupation:</strong> {{ student.father_occupation }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Phone:</strong> {{ student.father_phone }}</p>
+                                        <p class="mb-1"><strong>Email:</strong> {{ student.father_email }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Mother's Information -->
+                            <div class="mb-4">
+                                <h6 class="text-muted">Mother's Information</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Name:</strong> {{ student.mother_name }}</p>
+                                        <p class="mb-1"><strong>Occupation:</strong> {{ student.mother_occupation }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Phone:</strong> {{ student.mother_phone }}</p>
+                                        <p class="mb-1"><strong>Email:</strong> {{ student.mother_email }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Guardian's Information -->
+                            <div class="mb-4">
+                                <h6 class="text-muted">Guardian's Information</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Name:</strong> {{ student.guardian_name }}</p>
+                                        <p class="mb-1"><strong>Relationship:</strong> {{ student.guardian_relationship }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Phone:</strong> {{ student.guardian_phone }}</p>
+                                        <p class="mb-1"><strong>Email:</strong> {{ student.guardian_email }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Bootstrap tabs
+    var triggerTabList = [].slice.call(document.querySelectorAll('a[data-bs-toggle="tab"]'))
+    triggerTabList.forEach(function (triggerEl) {
+        new bootstrap.Tab(triggerEl)
+    })
+</script>
+{% endblock %}

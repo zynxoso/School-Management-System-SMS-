@@ -1,0 +1,343 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block title %}Students - Student Management System{% endblock %}
+
+{% block extra_css %}
+<!-- SweetAlert2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4 mb-0">Student Management</h2>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+            <i class="material-icons align-middle me-2" style="font-size: 20px;">person_add</i>
+            Add New Student
+        </button>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="material-icons text-muted" style="font-size: 20px;">search</i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-start-0" 
+                               placeholder="Search students..." value="{{ request.GET.search|default:'' }}">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select name="grade" class="form-select">
+                        <option value="">All Grades</option>
+                        {% for grade in grade_choices %}
+                            <option value="{{ grade }}" {% if request.GET.grade == grade|stringformat:"s" %}selected{% endif %}>
+                                Grade {{ grade }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="section" class="form-select">
+                        <option value="">All Sections</option>
+                        {% for section in section_choices %}
+                            <option value="{{ section }}" {% if request.GET.section == section %}selected{% endif %}>
+                                {{ section }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center">
+                        <i class="material-icons me-2" style="font-size: 20px;">filter_list</i>
+                        Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Student List</h5>
+                <span class="badge bg-primary">Total: {{ page_obj.paginator.count }}</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Name</th>
+                            <th>Grade</th>
+                            <th>Section</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="fw-medium">{{ student.student_id }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">{{ student.get_full_name }}</h6>
+                                        <small class="text-muted">{{ student.email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Grade {{ student.grade_level }}</td>
+                            <td>{{ student.section }}</td>
+                            <td>{{ student.phone_number }}</td>
+                            <td>
+                                {% if student.is_active %}
+                                    <span class="badge bg-success-subtle text-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'student:student_detail' student.pk %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="material-icons">visibility</i>
+                                    </a>
+                                    <a href="{% url 'student:student_update' student.pk %}" 
+                                       class="btn btn-sm btn-outline-warning">
+                                        <i class="material-icons">edit</i>
+                                    </a>
+                                    <a href="{% url 'student:student_delete' student.pk %}" 
+                                       class="btn btn-sm btn-outline-danger">
+                                        <i class="material-icons">delete</i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i class="material-icons text-muted mb-2" style="font-size: 48px;">school</i>
+                                    <h6 class="text-muted mb-1">No Students Found</h6>
+                                    <p class="text-muted small mb-0">Add a new student to get started</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if is_paginated %}
+        <div class="card-footer bg-light">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.grade %}&grade={{ request.GET.grade }}{% endif %}{% if request.GET.section %}&section={{ request.GET.section }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                            <i class="material-icons">first_page</i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.grade %}&grade={{ request.GET.grade }}{% endif %}{% if request.GET.section %}&section={{ request.GET.section }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                            <i class="material-icons">chevron_left</i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.grade %}&grade={{ request.GET.grade }}{% endif %}{% if request.GET.section %}&section={{ request.GET.section }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                            <i class="material-icons">chevron_right</i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.grade %}&grade={{ request.GET.grade }}{% endif %}{% if request.GET.section %}&section={{ request.GET.section }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                            <i class="material-icons">last_page</i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'student:student_create' %}" id="addStudentForm" 
+                      class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <!-- Basic Information -->
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="student_id" name="student_id" required>
+                                <label for="student_id">Student ID*</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="email" class="form-control" id="email" name="email" required>
+                                <label for="email">Email Address*</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                                <label for="first_name">First Name*</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="middle_name" name="middle_name">
+                                <label for="middle_name">Middle Name</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                <label for="last_name">Last Name*</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Academic Information -->
+                        <div class="col-md-4">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="grade_level" name="grade_level" required min="1">
+                                <label for="grade_level">Grade Level*</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="section" name="section" required>
+                                <label for="section">Section*</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-floating">
+                                <select class="form-select" id="academic_year" name="academic_year" required>
+                                    <option value="">Select Year</option>
+                                    <option value="2023-2024">2023-2024</option>
+                                    <option value="2024-2025">2024-2025</option>
+                                </select>
+                                <label for="academic_year">Academic Year*</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Personal Information -->
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
+                                <label for="date_of_birth">Date of Birth*</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
+                                    <option value="O">Other</option>
+                                </select>
+                                <label for="gender">Gender*</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact Information -->
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+                                <label for="phone_number">Phone Number*</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <textarea class="form-control" id="address" name="address" style="height: 100px"></textarea>
+                                <label for="address">Address</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="addStudentForm" class="btn btn-primary">
+                    <span class="d-flex align-items-center">
+                        <i class="material-icons me-2">save</i>
+                        Save Student
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.all.min.js"></script>
+<script>
+// Delete confirmation using SweetAlert2
+function confirmDelete(deleteUrl) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This action cannot be undone!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = deleteUrl;
+        }
+    });
+}
+
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('addStudentForm');
+    
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

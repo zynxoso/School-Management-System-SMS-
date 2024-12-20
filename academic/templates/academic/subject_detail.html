@@ -1,0 +1,148 @@
+{% extends 'academic/base.html' %}
+{% load static %}
+
+{% block title %}
+    <i class="fas fa-book me-2"></i>{{ subject.name }} - Subject Details
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <!-- Card Header -->
+                <div class="card-header bg-light py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-book me-2"></i>Subject Details
+                        </h5>
+                        <div class="btn-group">
+                            <a href="{% url 'academic:subject_list' %}" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left me-2"></i>Back to List
+                            </a>
+                            {% if user.is_superuser or user.user_type == 'admin' %}
+                            <a href="{% url 'academic:subject_update' subject.pk %}" class="btn btn-warning btn-sm ms-2">
+                                <i class="fas fa-edit me-2"></i>Edit Subject
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'academic:teacher_classes' %}" class="btn btn-outline-info">
+                                <i class="fas fa-chalkboard-teacher"></i> View My Classes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Basic Information -->
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase text-muted mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Basic Information
+                            </h6>
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th style="width: 30%">
+                                            <i class="fas fa-book me-2"></i>Subject Name:
+                                        </th>
+                                        <td>{{ subject.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <i class="fas fa-hashtag me-2"></i>Subject Code:
+                                        </th>
+                                        <td>{{ subject.code }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <i class="fas fa-star me-2"></i>Credits:
+                                        </th>
+                                        <td>{{ subject.credits }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase text-muted mb-3">
+                                <i class="fas fa-align-left me-2"></i>Description
+                            </h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    {% if subject.description %}
+                                        {{ subject.description|linebreaks }}
+                                    {% else %}
+                                        <p class="text-muted mb-0">
+                                            <i class="fas fa-info-circle me-2"></i>No description available.
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Classes Teaching This Subject -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h6 class="text-uppercase text-muted mb-3">
+                                <i class="fas fa-chalkboard-teacher me-2"></i>Classes Teaching This Subject
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th><i class="fas fa-school me-2"></i>Class</th>
+                                            <th><i class="fas fa-user-tie me-2"></i>Teacher</th>
+                                            <th><i class="fas fa-calendar-alt me-2"></i>Schedule</th>
+                                            <th><i class="fas fa-cogs me-2"></i>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for class_subject in subject.classsubject_set.all %}
+                                        <tr>
+                                            <td>{{ class_subject.class_group }}</td>
+                                            <td>{{ class_subject.teacher.get_full_name }}</td>
+                                            <td>{{ class_subject.schedule }}</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="{% url 'academic:class_detail' class_subject.class_group.pk %}" 
+                                                       class="btn btn-sm btn-outline-primary"
+                                                       title="View Class Details">
+                                                        <i class="fas fa-eye me-1"></i>View
+                                                    </a>
+                                                    {% if user.is_superuser or user.user_type == 'admin' %}
+                                                    <a href="{% url 'academic:class_subject_update' class_subject.pk %}" 
+                                                       class="btn btn-sm btn-outline-warning ms-1"
+                                                       title="Edit Class Subject">
+                                                        <i class="fas fa-edit me-1"></i>Edit
+                                                    </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4">
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <i class="fas fa-school text-muted mb-2" style="font-size: 48px;"></i>
+                                                    <p class="text-muted mb-0">
+                                                        <i class="fas fa-info-circle me-2"></i>
+                                                        This subject is not currently being taught in any class.
+                                                    </p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block title %}My Grades{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-graduation-cap me-2"></i>My Grades
+                        </h5>
+                        <div>
+                            <select class="form-select form-select-sm" id="assessment-type">
+                                <option value="all">All Assessments</option>
+                                <option value="quiz">Quiz</option>
+                                <option value="assignment">Assignment</option>
+                                <option value="mid_term">Mid Term</option>
+                                <option value="final">Final</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if grades %}
+                        <!-- Grade Summary Cards -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Overall Grade</h6>
+                                        <h3 class="mb-0">{{ overall_percentage|floatformat:1 }}%</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Highest Grade</h6>
+                                        <h3 class="mb-0">{{ highest_grade|floatformat:1 }}%</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Total Assessments</h6>
+                                        <h3 class="mb-0">{{ total_grades }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Grade Distribution</h6>
+                                        <div class="d-flex justify-content-between">
+                                            {% for grade, count in grade_distribution.items %}
+                                                <span>{{ grade }}: {{ count }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grades Table -->
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Assessment</th>
+                                        <th>Score</th>
+                                        <th>Max Score</th>
+                                        <th>Percentage</th>
+                                        <th>Grade</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for grade_data in grades %}
+                                    <tr>
+                                        <td>{{ grade_data.grade.class_subject.subject.name }}</td>
+                                        <td>{{ grade_data.grade.assessment_type|title }}</td>
+                                        <td>{{ grade_data.grade.score }}</td>
+                                        <td>{{ grade_data.grade.max_score }}</td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar {% if grade_data.percentage >= 90 %}bg-success
+                                                                      {% elif grade_data.percentage >= 80 %}bg-info
+                                                                      {% elif grade_data.percentage >= 70 %}bg-warning
+                                                                      {% else %}bg-danger{% endif %}"
+                                                     role="progressbar"
+                                                     style="width: {{ grade_data.percentage }}%"
+                                                     aria-valuenow="{{ grade_data.percentage }}"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100">
+                                                    {{ grade_data.percentage|floatformat:1 }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if grade_data.letter_grade == 'A' %}bg-success
+                                                             {% elif grade_data.letter_grade == 'B' %}bg-info
+                                                             {% elif grade_data.letter_grade == 'C' %}bg-warning
+                                                             {% elif grade_data.letter_grade == 'D' %}bg-warning text-dark
+                                                             {% else %}bg-danger{% endif %}">
+                                                {{ grade_data.letter_grade }}
+                                            </span>
+                                        </td>
+                                        <td>{{ grade_data.grade.date_created|date:"M d, Y" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No grades recorded yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const assessmentType = document.getElementById('assessment-type');
+    const rows = document.querySelectorAll('tbody tr');
+
+    assessmentType.addEventListener('change', function() {
+        const selectedType = this.value.toLowerCase();
+        
+        rows.forEach(row => {
+            const type = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            if (selectedType === 'all' || type === selectedType) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

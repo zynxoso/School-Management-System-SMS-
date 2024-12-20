@@ -1,0 +1,165 @@
+{% extends 'student/base.html' %}
+
+{% block title %}Dashboard - Student Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card border-left-primary h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Students</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_students }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card border-left-success h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active Students</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_students }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card border-left-info h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Grade Levels</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ grade_levels }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card border-left-warning h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Sections</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ sections }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chalkboard fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Grade Distribution Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card detail-card mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Grade Level Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="gradeDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card detail-card mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Students</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for student in recent_students %}
+                            <a href="{% url 'student:student_detail' student.pk %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ student.get_full_name }}</h6>
+                                    <small class="text-muted">{{ student.created_at|timesince }} ago</small>
+                                </div>
+                                <p class="mb-1">Grade {{ student.grade_level }} - {{ student.section }}</p>
+                            </a>
+                        {% empty %}
+                            <p class="text-muted text-center my-3">No recent students</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Grade Distribution Chart
+    var ctx = document.getElementById('gradeDistributionChart').getContext('2d');
+    var gradeData = {{ grade_distribution|safe }};
+    
+    var labels = Object.keys(gradeData);
+    var counts = labels.map(grade => gradeData[grade].count);
+    var percentages = labels.map(grade => gradeData[grade].percentage.toFixed(1));
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Number of Students',
+                data: counts,
+                backgroundColor: 'rgba(78, 115, 223, 0.5)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.dataset.label || '';
+                            var value = context.parsed.y;
+                            var percentage = percentages[context.dataIndex];
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

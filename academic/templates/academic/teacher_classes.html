@@ -1,0 +1,140 @@
+{% extends 'student/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1">My Classes</h4>
+                    <p class="text-muted mb-0">Manage your class assignments and student grades</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="material-icons small">search</i>
+                        </span>
+                        <input type="text" id="classSearch" class="form-control border-start-0" placeholder="Search classes...">
+                    </div>
+                    <select class="form-select" id="termFilter" style="width: auto;">
+                        <option value="all">All Terms</option>
+                        <option value="1">Term 1</option>
+                        <option value="2">Term 2</option>
+                        <option value="3">Term 3</option>
+                        <option value="4">Term 4</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if classes %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for class in classes %}
+                <div class="col class-card">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="card-title mb-1">{{ class.subject.name }}</h5>
+                                    <span class="badge bg-primary-subtle text-primary">
+                                        {{ class.class_group.name }} - {{ class.class_group.section }}
+                                    </span>
+                                </div>
+                                <span class="badge bg-success-subtle text-success">
+                                    {{ class.subject.credits }} Credits
+                                </span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="material-icons text-muted me-2 small">code</i>
+                                    <span class="text-muted">Subject Code:</span>
+                                    <span class="ms-2">{{ class.subject.code }}</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="material-icons text-muted me-2 small">group</i>
+                                    <span class="text-muted">Students:</span>
+                                    <span class="ms-2">{{ class.class_group.studentenrollment_set.count }}</span>
+                                </div>
+                            </div>
+
+                            <div class="progress mb-3" style="height: 6px;">
+                                {% with student_count=class.class_group.studentenrollment_set.count %}
+                                {% widthratio student_count 40 100 as percentage %}
+                                <div class="progress-bar bg-primary" role="progressbar" 
+                                     style="width: {% if percentage > 100 %}100{% else %}{{ percentage }}{% endif %}%" 
+                                     aria-valuenow="{{ student_count }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="40">
+                                </div>
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <div class="d-grid">
+                                <a href="{% url 'academic:teacher_grades' %}?class={{ class.id }}" 
+                                   class="btn btn-primary">
+                                    <i class="material-icons me-2 small">grade</i>Manage Grades
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info d-flex align-items-center shadow-sm">
+            <i class="material-icons me-2">info</i>
+            <div>
+                <h6 class="alert-heading mb-1">No Classes Assigned</h6>
+                <p class="mb-0">You don't have any classes assigned yet. Please contact the administrator.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('classSearch');
+    const classCards = document.querySelectorAll('.class-card');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        classCards.forEach(card => {
+            const title = card.querySelector('.card-title').textContent.toLowerCase();
+            const code = card.querySelector('.text-muted + span').textContent.toLowerCase();
+            
+            if (title.includes(searchTerm) || code.includes(searchTerm)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+
+    // Term filter functionality
+    const termFilter = document.getElementById('termFilter');
+    termFilter.addEventListener('change', function() {
+        const selectedTerm = this.value;
+        
+        if (selectedTerm === 'all') {
+            classCards.forEach(card => card.style.display = '');
+        } else {
+            classCards.forEach(card => {
+                const classSection = card.querySelector('.badge').textContent.toLowerCase();
+                if (classSection.includes(`term ${selectedTerm}`)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}
